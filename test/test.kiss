@@ -1,0 +1,9 @@
+$fn f1:i (p1:i){
+  $novar;
+  $noop;
+};
+
+$fn f2:i (p1:i p2:f){
+  $var v1 <- 1;
+  $out <- myfn p1 p2 v1;
+};
