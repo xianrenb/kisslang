@@ -4,6 +4,6 @@ $fn f1:i (p1:i){
 };
 
 $fn f2:i (p1:i p2:f){
-  $var v1 <- 1;
-  $out <- myfn p1 p2 v1;
+  $var v1:i <- 1;
+  v1 <- myfn p1 p2 v1;
 };

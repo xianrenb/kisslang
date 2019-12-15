@@ -68,12 +68,12 @@ ParamList
     { return [head].concat(tail); }
 
 Param
-  = id:Identifier ":" dataType:DataType
+  = id:Identifier ":" paramType:DataType
     {
       return {
         type: "Param",
         id: id,
-        dataType: dataType
+        paramType: paramType
       }
     }
 
@@ -96,12 +96,13 @@ VariableDeclarations
 
 VariableDeclaration
   = "$var" _ ws
-    id:Identifier ws
+    id:Identifier ":" variableType:DataType ws
     "<-" ws
     value:(f64number / i64number) ";"
     {
       return {
         type: "VariableDeclaration",
+        variableType: variableType,
         id: id,
         value: value
       };
@@ -123,7 +124,7 @@ CallStatement
       return {
         type: "CallStatement",
         variable: variable,
-        function: fn,
+        fn: fn,
         params: params
       };
     }
