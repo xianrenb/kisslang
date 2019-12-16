@@ -98,13 +98,13 @@ VariableDeclaration
   = "$var" _ ws
     id:Identifier ":" variableType:DataType ws
     "<-" ws
-    value:(f64number / i64number) ";"
+    iniValue:(f64number / i64number) ";"
     {
       return {
         type: "VariableDeclaration",
-        variableType: variableType,
         id: id,
-        value: value
+        variableType: variableType,
+        iniValue: iniValue
       };
     }
 

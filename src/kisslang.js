@@ -18,15 +18,15 @@ Kisslang.prototype = {
   visitFunction: function(fn, module, binaryen){
       if (fn.type !== "FunctionDeclaration") throw "Not function";
       const returnType = binaryen[fn.returnType];
-      const paramsInfo = {};
+      const paramsInfo = new Map();
       const paramTypes = [];
 
       fn.params.forEach(function(param){
         if (param.type !== "Param") throw "Not param";
 
-        paramsInfo[param.id.name] = {position: paramTypes.length,
-                                     paramType: param.paramType
-                                    };
+        paramsInfo.set(param.id.name, {index: paramTypes.length,
+                                       paramType: param.paramType
+                                      });
 
         paramTypes.push(binaryen[param.paramType]);
       });
@@ -45,17 +45,27 @@ Kisslang.prototype = {
                        nParam, paramsInfo
                      ){
       if (fnBody.type !== "FunctionBody") throw "Not function body";
-      const variablesInfo = {};
+      const variablesInfo = new Map();
       const localTypes = [];
+      const varIniExpressions = [];
 
       fnBody.variables.forEach(function(variable){
         if (variable.type !== "VariableDeclaration") throw "Not variable";
+        const index = nParam + localTypes.length;
+        const variableType = variable.variableType;
+        const iniValue = variable.iniValue.value;
 
-        variablesInfo[variable.id.name] = {position: nParam + localTypes.length,
-                                           variableType: variable.variableType
-                                          };
+        variablesInfo.set(variable.id.name,
+                          {index: index,
+                           variableType: variableType,
+                           iniValue: iniValue
+                          });
 
-        localTypes.push(binaryen[variable.variableType]);
+        localTypes.push(binaryen[variableType]);
+
+        varIniExpressions.push(
+          module.local.set(index, module[variableType].const(iniValue))
+        );
       });
 
       const callExpressions = [];
@@ -66,14 +76,14 @@ Kisslang.prototype = {
 
         call.params.forEach(function(param){
           if (param.type === "Identifier"){
-            if (paramsInfo.hasOwnProperty(param.name)){
-              const position = paramsInfo[param.name].position;
-              const localType = paramsInfo[param.name].paramType;
-              params.push(module.local.get(position, binaryen[localType]));
-            } else if (variablesInfo.hasOwnProperty(param.name)){
-              const position = variablesInfo[param.name].position;
-              const localType = variablesInfo[param.name].variableType;
-              params.push(module.local.get(position, binaryen[localType]));
+            if (paramsInfo.has(param.name)){
+              const index = paramsInfo.get(param.name).index;
+              const localType = paramsInfo.get(param.name).paramType;
+              params.push(module.local.get(index, binaryen[localType]));
+            } else if (variablesInfo.has(param.name)){
+              const index = variablesInfo.get(param.name).index;
+              const localType = variablesInfo.get(param.name).variableType;
+              params.push(module.local.get(index, binaryen[localType]));
             } else throw "Param not found";
           } else if (param.type === "f64"){
             params.push(module.f64.const(param.value));
@@ -82,15 +92,24 @@ Kisslang.prototype = {
           }
         });
 
-        const resultType = variablesInfo[call.variable.name].variableType;
+        const variable = variablesInfo.get(call.variable.name)
+        const resultType = variable.variableType;
+        const index = variable.index;
 
-        callExpressions.push(module.call(
-          call.fn.name, params, binaryen[resultType]
-        ));
+        callExpressions.push(
+          module.local.set(
+            index,
+            module.call(
+              call.fn.name, params, binaryen[resultType]
+            )
+          )
+        );
       });
 
+      const expressions = varIniExpressions.concat(callExpressions);
+
       module.addFunction(fnName, typeSignature, localTypes,
-        module.block(null, callExpressions)
+        module.block(null, expressions)
       );
   },
   emitWasmText: function(){
