@@ -1,6 +1,6 @@
-$fn f1:i (p1:i){
-  $novar;
-  $noop;
+$fn f1:i (dummy:i){
+  $var dummyOut:i <- 0;
+  dummyOut <- nop void;
 };
 
 $fn f2:i (p1:i p2:f){

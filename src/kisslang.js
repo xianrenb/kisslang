@@ -69,13 +69,16 @@ Kisslang.prototype = {
       });
 
       const callExpressions = [];
+      let outputVarName = "";
 
       fnBody.calls.forEach(function(call){
         if (call.type !== "CallStatement") throw "Not call";
         const params = [];
 
         call.params.forEach(function(param){
-          if (param.type === "Identifier"){
+          if (param.type === "Void"){
+            // do nothing
+          } else if (param.type === "Identifier"){
             if (paramsInfo.has(param.name)){
               const index = paramsInfo.get(param.name).index;
               const localType = paramsInfo.get(param.name).paramType;
@@ -92,6 +95,7 @@ Kisslang.prototype = {
           }
         });
 
+        outputVarName = call.variable.name;
         const variable = variablesInfo.get(call.variable.name)
         const resultType = variable.variableType;
         const index = variable.index;
@@ -106,7 +110,23 @@ Kisslang.prototype = {
         );
       });
 
-      const expressions = varIniExpressions.concat(callExpressions);
+      const outputExpressions = [];
+
+      if (outputVarName === ""){
+        throw "No output variable";
+      } else {
+        const index = variablesInfo.get(outputVarName).index;
+        const localType = variablesInfo.get(outputVarName).variableType;
+
+        outputExpressions.push(
+          module.return(
+            module.local.get(index, binaryen[localType])
+          )
+        );
+      }
+
+      const expressions = varIniExpressions.concat(callExpressions)
+                                           .concat(outputExpressions);
 
       module.addFunction(fnName, typeSignature, localTypes,
         module.block(null, expressions)

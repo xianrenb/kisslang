@@ -45,8 +45,6 @@ Identifier
 ReservedWord
   = "$fn"
   / "$var"
-  / "$novar"
-  / "$noop"
 
 IdentifierStart
   = [a-z]i
@@ -92,7 +90,6 @@ VariableDeclarations
     {
       return [head].concat(tail);
     }
-  / "$novar" ";" { return []; }
 
 VariableDeclaration
   = "$var" _ ws
@@ -113,13 +110,12 @@ CallStatements
     {
       return [head].concat(tail);
     }
-  / "$noop" ";" { return []; }
 
 CallStatement
   = variable:Identifier ws
     "<-" ws
     fn:Identifier _ ws
-    params:ParamListWithoutType ";"
+    params:(NoParam / ParamListWithoutType) ";"
     {
       return {
         type: "CallStatement",
@@ -127,6 +123,14 @@ CallStatement
         fn: fn,
         params: params
       };
+    }
+
+NoParam
+  = "void"
+    {
+      return [{
+        type: "Void"
+      }];
     }
 
 ParamListWithoutType
