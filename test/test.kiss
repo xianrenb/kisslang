@@ -1,3 +1,6 @@
+$fnImport nop:i (void) <- js.nop;
+$fnImport myfn:i (p1:i p2:f p3:i) <- js.myfn;
+
 $fn f1:i (dummy:i){
   $var dummyOut:i <- 0;
   dummyOut <- nop void;
@@ -7,3 +10,5 @@ $fn f2:i (p1:i p2:f){
   $var v1:i <- 1;
   v1 <- myfn p1 p2 v1;
 };
+
+$fnExport f2 <- f2;

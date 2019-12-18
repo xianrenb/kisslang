@@ -31,20 +31,17 @@ Kisslang.prototype = {
         paramTypes.push(binaryen[param.paramType]);
       });
 
-      const typeSignature = module.addFunctionType(
-                              fn.id.name, returnType, paramTypes
-                            );
-
       this.visitFunctionBody(
-        fn.body, module, binaryen, fn.id.name, typeSignature, paramTypes.length,
+        fn.body, module, binaryen, fn.id.name, paramTypes, returnType,
         paramsInfo
       );
   },
   visitFunctionBody: function(
-                       fnBody, module, binaryen, fnName, typeSignature,
-                       nParam, paramsInfo
+                       fnBody, module, binaryen, fnName, paramTypes,
+                       returnType, paramsInfo
                      ){
       if (fnBody.type !== "FunctionBody") throw "Not function body";
+      const nParam = paramTypes.length;
       const variablesInfo = new Map();
       const localTypes = [];
       const varIniExpressions = [];
@@ -128,8 +125,8 @@ Kisslang.prototype = {
       const expressions = varIniExpressions.concat(callExpressions)
                                            .concat(outputExpressions);
 
-      module.addFunction(fnName, typeSignature, localTypes,
-        module.block(null, expressions)
+      module.addFunction(fnName, binaryen.createType(paramTypes), returnType,
+        localTypes, module.block(null, expressions)
       );
   },
   emitWasmText: function(){

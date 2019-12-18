@@ -1,0 +1,28 @@
+{
+  "name": "kisslang",
+  "version": "0.1.0",
+  "description": "",
+  "main": "src/kisslang.js",
+  "directories": {
+    "test": "test"
+  },
+  "dependencies": {
+    "binaryen": "^89.0.0",
+    "pegjs": "^0.10.0"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/xianrenb/kisslang.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/xianrenb/kisslang/issues"
+  },
+  "homepage": "https://github.com/xianrenb/kisslang#readme"
+}

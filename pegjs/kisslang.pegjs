@@ -6,11 +6,51 @@
  */
 
 Root
-  = head:FunctionDeclaration tail:(ws v:FunctionDeclaration { return v; })* ws
+  = fnImports:FunctionImports ws
+    functions:FunctionDeclarations ws
+    fnExports:FunctionExports
     {
       return {
         type: "Root",
-        functions: [head].concat(tail)
+        fnImports: fnImports,
+        functions: functions,
+        fnExports: fnExports
+      };
+    }
+
+FunctionImports
+  = head:FunctionImport tail:(ws v:FunctionImport { return v; })* ws
+    {
+      return [head].concat(tail);
+    }
+
+FunctionDeclarations
+  = head:FunctionDeclaration tail:(ws v:FunctionDeclaration { return v; })* ws
+    {
+      return [head].concat(tail);
+    }
+
+FunctionExports
+  = head:FunctionExport tail:(ws v:FunctionExport { return v; })* ws
+    {
+      return [head].concat(tail);
+    }
+
+FunctionImport
+  = "$fnImport" _ ws
+    id:Identifier ":" returnType:DataType ws
+    "(" params:(NoParam / ParamList) ")" ws
+    "<-" ws
+    extModule:Identifier "."
+    extId:Identifier ";"
+    {
+      return {
+        type: "FunctionImport",
+        id: id,
+        returnType: returnType,
+        params: params,
+        extModule: extModule,
+        extId: extId
       };
     }
 
@@ -31,6 +71,19 @@ FunctionDeclaration
       };
     }
 
+FunctionExport
+  = "$fnExport" _ ws
+    extName:Identifier ws
+    "<-" ws
+    id:Identifier ";"
+    {
+      return {
+        type: "FunctionExport",
+        extName: extName,
+        id: id
+      };
+    }
+
 _ "_" = [ \t\n\r]
 
 Identifier
@@ -45,6 +98,8 @@ Identifier
 ReservedWord
   = "$fn"
   / "$var"
+  / "$fnImport"
+  / "$fnExport"
 
 IdentifierStart
   = [a-z]i
