@@ -15,6 +15,25 @@ Kisslang.prototype = {
   parse: function(lines){
     this.ast = this.parser.parse(lines);
   },
+  visitFunctionImport: function(fnImport, module, binaryen){
+      if (fnImport.type !== "FunctionImport") throw "Not function import";
+      const intName = fnImport.id.name;
+      const extModuleName = fnImport.extModule.name;
+      const extName = fnImport.extId.name;
+      const returnType = binaryen[fnImport.returnType];
+      const paramTypes = [];
+
+      fnImport.params.forEach(function(param){
+        if (param.type === "Void"){
+          // do nothing
+        } else if (param.type === "Param"){
+          paramTypes.push(binaryen[param.paramType]);
+        }
+      });
+
+      module.addFunctionImport(intName, extModuleName, extName,
+        binaryen.createType(paramTypes), returnType);
+  },
   visitFunction: function(fn, module, binaryen){
       if (fn.type !== "FunctionDeclaration") throw "Not function";
       const returnType = binaryen[fn.returnType];
@@ -35,6 +54,13 @@ Kisslang.prototype = {
         fn.body, module, binaryen, fn.id.name, paramTypes, returnType,
         paramsInfo
       );
+  },
+  visitFunctionExport: function(fnExport, module, binaryen){
+      if (fnExport.type !== "FunctionExport") throw "Not function export";
+      const intName = fnExport.id.name;
+      const extName = fnExport.extName.name;
+
+      module.addFunctionExport(intName, extName);
   },
   visitFunctionBody: function(
                        fnBody, module, binaryen, fnName, paramTypes,
@@ -135,8 +161,16 @@ Kisslang.prototype = {
     if (root.type !== "Root") throw 'Not root';
     const that = this;
 
+    this.ast.fnImports.forEach(function(fnImport){
+      that.visitFunctionImport(fnImport, module, that.binaryen);
+    });
+
     this.ast.functions.forEach(function(fn){
       that.visitFunction(fn, module, that.binaryen);
+    });
+
+    this.ast.fnExports.forEach(function(fnExport){
+      that.visitFunctionExport(fnExport, module, that.binaryen);
     });
 
     return module.emitText();
