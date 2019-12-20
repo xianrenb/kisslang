@@ -155,7 +155,7 @@ Kisslang.prototype = {
         localTypes, module.block(null, expressions)
       );
   },
-  emitWasmText: function(){
+  beforeEmit: function(){
     const module = new binaryen.Module();
     const root = this.ast;
     if (root.type !== "Root") throw 'Not root';
@@ -173,13 +173,39 @@ Kisslang.prototype = {
       that.visitFunctionExport(fnExport, module, that.binaryen);
     });
 
+    this.module = module;
+  },
+  emitWasmText: function(optimized){
+    this.beforeEmit();
+    const module = this.module;
+
+    if (optimized){
+      module.optimize();
+    }
+
+    if (!module.validate()){
+      throw "Validation error";
+    }
+
     return module.emitText();
+  },
+  emitWasmBinary: function(){
+    this.beforeEmit();
+    const module = this.module;
+    module.optimize();
+
+    if (!module.validate()){
+      throw "Validation error";
+    }
+
+    return module.emitBinary();
   }
 };
 
 // main
 if (require.main === module){
   // called directly
+  const myArgs = process.argv.slice(2);
   const kisslang = new Kisslang();
   process.stdin.resume();
   process.stdin.setEncoding('utf8');
@@ -191,8 +217,17 @@ if (require.main === module){
 
   process.stdin.on('end', function(){
     kisslang.parse(lines);
-    const wasmText = kisslang.emitWasmText();
-    process.stdout.write(wasmText);
+
+    if ((myArgs.length === 0) || (myArgs[0] === "-b")){
+      const wasmBinary = kisslang.emitWasmBinary();
+      process.stdout.write(wasmBinary);
+    } else if (myArgs[0] === "-ot"){
+      const wasmText = kisslang.emitWasmText(true);
+      process.stdout.write(wasmText);
+    } else if (myArgs[0] === "-t"){
+      const wasmText = kisslang.emitWasmText(false);
+      process.stdout.write(wasmText);
+    }
   });
 } else {
   // required as a module
