@@ -113,7 +113,7 @@ IdentifierPart
   / "$"
 
 DataType
-  = "i" { return "i64"; }
+  = "i" { return "i32"; }
   / "f" { return "f64"; }
 
 ParamList
@@ -150,7 +150,7 @@ VariableDeclaration
   = "$var" _ ws
     id:Identifier ":" variableType:DataType ws
     "<-" ws
-    iniValue:(f64number / i64number) ";"
+    iniValue:(f64number / i32number) ";"
     {
       return {
         type: "VariableDeclaration",
@@ -197,15 +197,15 @@ ParamListWithoutType
 ParamWithoutType
   = variable:Identifier { return variable; }
   / f64number
-  / i64number
+  / i32number
 
 ws "whitespace" = [ \t\n\r]*
 
-i64number "i64number"
+i32number "i32number"
   = minus? int exp?
     {
       return {
-        type: "i64",
+        type: "i32",
         value: parseInt(text())
       };
     }

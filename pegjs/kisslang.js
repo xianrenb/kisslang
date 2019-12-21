@@ -222,7 +222,7 @@ function peg$parse(input, options) {
       peg$c41 = peg$classExpectation([["0", "9"]], false, false),
       peg$c42 = "i",
       peg$c43 = peg$literalExpectation("i", false),
-      peg$c44 = function() { return "i64"; },
+      peg$c44 = function() { return "i32"; },
       peg$c45 = "f",
       peg$c46 = peg$literalExpectation("f", false),
       peg$c47 = function() { return "f64"; },
@@ -266,10 +266,10 @@ function peg$parse(input, options) {
           },
       peg$c56 = function(variable) { return variable; },
       peg$c57 = peg$otherExpectation("whitespace"),
-      peg$c58 = peg$otherExpectation("i64number"),
+      peg$c58 = peg$otherExpectation("i32number"),
       peg$c59 = function() {
             return {
-              type: "i64",
+              type: "i32",
               value: parseInt(text())
             };
           },
@@ -1502,7 +1502,7 @@ function peg$parse(input, options) {
                     if (s9 !== peg$FAILED) {
                       s10 = peg$parsef64number();
                       if (s10 === peg$FAILED) {
-                        s10 = peg$parsei64number();
+                        s10 = peg$parsei32number();
                       }
                       if (s10 !== peg$FAILED) {
                         if (input.charCodeAt(peg$currPos) === 59) {
@@ -1805,7 +1805,7 @@ function peg$parse(input, options) {
     if (s0 === peg$FAILED) {
       s0 = peg$parsef64number();
       if (s0 === peg$FAILED) {
-        s0 = peg$parsei64number();
+        s0 = peg$parsei32number();
       }
     }
 
@@ -1843,7 +1843,7 @@ function peg$parse(input, options) {
     return s0;
   }
 
-  function peg$parsei64number() {
+  function peg$parsei32number() {
     var s0, s1, s2, s3;
 
     peg$silentFails++;

@@ -113,8 +113,8 @@ Kisslang.prototype = {
             } else throw "Param not found";
           } else if (param.type === "f64"){
             params.push(module.f64.const(param.value));
-          } else if (param.type === "i64"){
-            params.push(module.i64.const(param.value));
+          } else if (param.type === "i32"){
+            params.push(module.i32.const(param.value));
           }
         });
 
