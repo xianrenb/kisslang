@@ -155,15 +155,80 @@ Kisslang.prototype = {
         localTypes, module.block(null, expressions)
       );
   },
+  addBuiltInFunctions: function(module, binaryen){
+    module.addFunction("_istore",
+      binaryen.createType([ binaryen.i32, binaryen.i32 ]), binaryen.i32, [],
+      module.block(null, [
+        module.i32.store(
+          0, 0,
+          module.local.get(0, binaryen.i32),
+          module.local.get(1, binaryen.i32)
+        ),
+        module.return(
+          module.local.get(1, binaryen.i32)
+        )
+      ])
+    );
+
+    module.addFunction("_fstore",
+      binaryen.createType([ binaryen.i32, binaryen.f64 ]), binaryen.f64, [],
+      module.block(null, [
+        module.f64.store(
+          0, 0,
+          module.local.get(0, binaryen.i32),
+          module.local.get(1, binaryen.f64)
+        ),
+        module.return(
+          module.local.get(1, binaryen.f64)
+        )
+      ])
+    );
+
+    module.addFunction("_iload",
+      binaryen.createType([ binaryen.i32 ]), binaryen.i32, [],
+      module.block(null, [
+        module.return(
+          module.i32.load(
+            0, 0,
+            module.local.get(0, binaryen.i32),
+          )
+        )
+      ])
+    );
+
+    module.addFunction("_fload",
+      binaryen.createType([ binaryen.i32 ]), binaryen.f64, [],
+      module.block(null, [
+        module.return(
+          module.f64.load(
+            0, 0,
+            module.local.get(0, binaryen.i32),
+          )
+        )
+      ])
+    );
+  },
   beforeEmit: function(){
     const module = new binaryen.Module();
     const root = this.ast;
     if (root.type !== "Root") throw 'Not root';
+    module.setFeatures(binaryen.Features.All);
+
+    module.setMemory(1, 256, "_mem", [
+      {
+        offset: module.i32.const(0),
+        data: new Uint8Array([0]),
+        passive: false
+      }
+    ], true);
+
     const that = this;
 
     this.ast.fnImports.forEach(function(fnImport){
       that.visitFunctionImport(fnImport, module, that.binaryen);
     });
+
+    this.addBuiltInFunctions(module, this.binaryen);
 
     this.ast.functions.forEach(function(fn){
       that.visitFunction(fn, module, that.binaryen);

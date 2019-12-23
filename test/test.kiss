@@ -11,5 +11,15 @@ $fn f2:i (p1:i p2:f){
   v1 <- myfn p1 p2 v1;
 };
 
+$fn f3:f (dummy:i){
+  $var v1:i <- 0;
+  $var v2:f <- 0.0;
+  v1 <- _iload 12;
+  v1 <- _istore 16 v1;
+  v2 <- _fload 20;
+  v2 <- _fstore 28 v2;
+};
+
 $fnExport f1 <- f1;
 $fnExport f2 <- f2;
+$fnExport f3 <- f3;
