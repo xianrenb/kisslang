@@ -76,7 +76,7 @@ Kisslang.prototype = {
         if (variable.type !== "VariableDeclaration") throw "Not variable";
         const index = nParam + localTypes.length;
         const variableType = variable.variableType;
-        const iniValue = variable.iniValue.value;
+        const iniValue = variable.iniValue;
 
         variablesInfo.set(variable.id.name,
                           {index: index,
@@ -86,9 +86,25 @@ Kisslang.prototype = {
 
         localTypes.push(binaryen[variableType]);
 
-        varIniExpressions.push(
-          module.local.set(index, module[variableType].const(iniValue))
-        );
+        if (iniValue.type === "Identifier"){
+          if (!paramsInfo.has(iniValue.name)) throw "Param not found";
+          const iniIndex = paramsInfo.get(iniValue.name).index;
+          const iniType = paramsInfo.get(iniValue.name).paramType;
+
+          varIniExpressions.push(
+            module.local.set(index,
+              module.local.get(iniIndex, binaryen[iniType])
+            )
+          );
+        } else if ((iniValue.type === "f64") || (iniValue.type === "i32")){
+          varIniExpressions.push(
+            module.local.set(index,
+              module[variableType].const(iniValue.value)
+            )
+          );
+        } else {
+          throw "Unexpected iniValue";
+        }
       });
 
       const callExpressions = [];
@@ -148,8 +164,64 @@ Kisslang.prototype = {
         );
       }
 
-      const expressions = varIniExpressions.concat(callExpressions)
-                                           .concat(outputExpressions);
+      let expressions = null;
+
+      if (variablesInfo.has("_breqz")){
+        const brIndex = variablesInfo.get("_breqz").index;
+        const brType = variablesInfo.get("_breqz").variableType;
+        if (brType !== "i32") throw "_breqz should have type i32";
+        localTypes.push(binaryen.i32);
+        const labelHelperIndex = localTypes.length - 1;
+
+        const relooper = new binaryen.Relooper(module);
+
+        const block0 = relooper.addBlock(
+          module.block(null, varIniExpressions)
+        );
+
+        const block1 = relooper.addBlock(
+          module.block(null, [
+            module.nop()
+          ])
+        );
+
+        const block2 = relooper.addBlock(
+          module.block(null, callExpressions)
+        );
+
+        const block3 = relooper.addBlock(
+          module.block(null, outputExpressions)
+        );
+
+        relooper.addBranch(
+          block0,
+          block3,
+          module.i32.eqz(
+            module.local.get(brIndex, binaryen.i32)
+          ),
+          null
+        );
+
+        relooper.addBranch(block0, block1, null, null);
+        relooper.addBranch(block1, block2, null, null);
+
+        relooper.addBranch(
+          block2,
+          block3,
+          module.i32.eqz(
+            module.local.get(brIndex, binaryen.i32)
+          ),
+          null
+        );
+
+        relooper.addBranch(block2, block1, null, null);
+
+        expressions = [relooper.renderAndDispose(block0, labelHelperIndex,
+          module)];
+      } else {
+        expressions = varIniExpressions.concat(callExpressions)
+                                       .concat(outputExpressions);
+      }
 
       module.addFunction(fnName, binaryen.createType(paramTypes), returnType,
         localTypes, module.block(null, expressions)

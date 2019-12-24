@@ -150,7 +150,7 @@ VariableDeclaration
   = "$var" _ ws
     id:Identifier ":" variableType:DataType ws
     "<-" ws
-    iniValue:(f64number / i32number) ";"
+    iniValue:(Identifier / f64number / i32number) ";"
     {
       return {
         type: "VariableDeclaration",

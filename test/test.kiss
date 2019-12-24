@@ -1,5 +1,7 @@
 $fnImport nop:i (void) <- js.nop;
 $fnImport myfn:i (p1:i p2:f p3:i) <- js.myfn;
+$fnImport add:i (p1:i p2:i) <- js.add;
+$fnImport sub:i (p1:i p2:i) <- js.sub;
 
 $fn f1:i (dummy:i){
   $var dummyOut:i <- 0;
@@ -20,6 +22,26 @@ $fn f3:f (dummy:i){
   v2 <- _fstore 28 v2;
 };
 
+$fn f4:i (n:i){
+  $var _breqz:i <- n;
+  $var s:i <- 0;
+  $var t:i <- 0;
+  _breqz <- add 0 0;
+  s <- f4a n;
+  t <- sub n 1;
+  t <- f4 t;
+  s <- add s t;
+};
+
+$fn f4a:i (n:i){
+  $var _breqz:i <- n;
+  $var s:i <- 0;
+  s <- add s _breqz;
+  _breqz <- sub _breqz 1;
+  s <- add s 0;
+};
+
 $fnExport f1 <- f1;
 $fnExport f2 <- f2;
 $fnExport f3 <- f3;
+$fnExport f4 <- f4;

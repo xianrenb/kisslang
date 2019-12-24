@@ -7,7 +7,9 @@ const bytes = fs.readFileSync('./test.wasm');
 const imports = {
   js: {
     nop: () => {return;},
-    myfn: (a, b, c) => (a + Math.floor(b) + c)
+    myfn: (a, b, c) => (a + Math.floor(b) + c),
+    add: (a, b) => (a + b),
+    sub: (a, b) => (a - b)
   }
 };
 
@@ -25,4 +27,8 @@ const imports = {
     view1.getInt32(16, true) + '\n');
   process.stdout.write('view1.getFloat64(28, true): ' +
     view1.getFloat64(28, true) + '\n');
+  process.stdout.write('f4(1): ' + wasmExports.f4(1) + '\n');
+  process.stdout.write('f4(2): ' + wasmExports.f4(2) + '\n');
+  process.stdout.write('f4(3): ' + wasmExports.f4(3) + '\n');
+  process.stdout.write('f4(4): ' + wasmExports.f4(4) + '\n');
 })();

@@ -1500,9 +1500,12 @@ function peg$parse(input, options) {
                   if (s8 !== peg$FAILED) {
                     s9 = peg$parsews();
                     if (s9 !== peg$FAILED) {
-                      s10 = peg$parsef64number();
+                      s10 = peg$parseIdentifier();
                       if (s10 === peg$FAILED) {
-                        s10 = peg$parsei32number();
+                        s10 = peg$parsef64number();
+                        if (s10 === peg$FAILED) {
+                          s10 = peg$parsei32number();
+                        }
                       }
                       if (s10 !== peg$FAILED) {
                         if (input.charCodeAt(peg$currPos) === 59) {
